@@ -1,6 +1,9 @@
 import time
 import re
 from datetime import datetime
+import requests
+
+
 
 lineformat = re.compile(r"""(?P<ipaddress>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}) - - \[(?P<dateandtime>\d{2}\/[a-z]{3}\/\d{4}:\d{2}:\d{2}:\d{2} (\+|\-)\d{4})\] ((\"(GET|POST) )(?P<url>.+)(http\/1\.1")) (?P<statuscode>\d{3}) (?P<bytessent>\d+) (?P<refferer>-|"([^"]+)") (["](?P<useragent>[^"]+)["])""", re.IGNORECASE)
 
@@ -21,6 +24,14 @@ def parse(line):
 
 def persist():
     print("persist")
+    
+    """data = {
+        'ipaddress': ip,
+        'useragent': useragent,
+        'time': time,
+        'website':website,
+    }"""
+    #response = requests.post('fyp-backend aws /connections/add',data=data)
 
 def watch(fn, words):
     global date
@@ -47,8 +58,27 @@ def watch(fn, words):
             print("SLEEP")
             time.sleep(4)
 
+
+log = open("progress.txt","r+")
+def saveProgress(datestr):#feel like it could be easier to pass in the date obj but then again the raw str version is available at all times
+    log.write(datestr)
+    log.flush()
+
+
+def loadProgress():
+    dateLoad = log.readline()
+    print(dateLoad)
+    #convert to the global var date
+    
+
 fn = 'accesslog.txt'
 words = ['word']
+
+#saveProgress(raw_date)
+loadProgress()
+saveProgress(raw_date)
+saveProgress("shite")
+
 
 #hardcoded datetime to start the persisting from
 #this raw data could be recovered from a textfile or passed in as param
