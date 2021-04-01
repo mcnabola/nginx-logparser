@@ -14,7 +14,7 @@ for i in range(15):
 
     #date generation to match the format of that - already done this datetime strformatting before
     date_current = datetime.now()
-    date =date_current.strftime("%d/%b/%Y:%H:%M:%S %z")
+    date =date_current.strftime("%d/%b/%Y:%H:%M:%S")+" +0000" # %z - didnt add the +0000 to the result 
     queriedContent = '"GET /trackingFile.css HTTP/1.1"'
 
     response = "200 34"
