@@ -6,9 +6,10 @@ demo = '178.16.199.149 - - [05/Jan/2021:22:04:55 +0000] "GET /trackingFile.css H
 
 list_ips = ["178.16.199.149","156.255.5.24", "178.67.54.222", "54.33.67.4"]
 
-print(len(list_ips))
 
-for i in range(10):
+accessLog = open("accesslog.txt","a")#a-append
+
+for i in range(15):
     ip = list_ips[random.randint(0, len(list_ips)-1 )]
 
     #date generation to match the format of that - already done this datetime strformatting before
@@ -25,12 +26,13 @@ for i in range(10):
     proxy = '"-"'
 
 
-    outputString = ip + " - - " + "[" + date + "] " + queriedContent + " " + response + " " + website + " " + useragent + " " + proxy   
+    outputString = ip + " - - " + "[" + date + "] " + queriedContent + " " + response + " " + website + " " + useragent + " " + proxy+"\n" 
     print(outputString)
+    accessLog.write(outputString)
+    accessLog.flush()
     time.sleep(6)
 
 
 
-#accessLog = open("nginxLog.txt","a")#a-append
 #accessLog.write()
-#accessLog.close()
+accessLog.close()
