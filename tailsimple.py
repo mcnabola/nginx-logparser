@@ -42,6 +42,7 @@ def saveProgress(datestr):#feel like it could be easier to pass in the date obj 
 
 def printDates(date1, date2):
     print(date1.strftime(date_format) + " 2 " + date2.strftime(date_format) )
+    print(date1>date2)
 
 
 def watch(fn):
@@ -55,11 +56,12 @@ def watch(fn):
         if new:
             print(new)
             datadict = parse(new)
+            print(type(datadict))
             if datadict is not None:
                 tempDate = datetime.strptime(datadict["dateandtime"], date_format)
                 printDates(tempDate, date)
                 if tempDate > date:
-                    response = persist(datadict["ipaddress"], datadict["useragent"], datadict["dateandtime"], datadict["refferer"], datadict["status"])
+                    response = persist(datadict["ipaddress"], datadict["useragent"], datadict["dateandtime"], datadict["refferer"], datadict["statuscode"])
                     print(response)
                     if response=="<Response [200]>":
                         date = tempDate#this is done after we verify that the data actually was received by server otherwise why bother log it as complete
@@ -91,7 +93,7 @@ fn = 'accesslog.txt'
 
 
 date = loadProgress()
-print(type(date))
+print(datetime.strftime(date,date_format))
 watch(fn)
 #for hit_word, hit_sentence in watch(fn, words):
     #print ("Found %r in line: %r" % (hit_word, hit_sentence))
