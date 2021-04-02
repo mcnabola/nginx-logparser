@@ -10,10 +10,8 @@ lineformat = re.compile(r"""(?P<ipaddress>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}) - 
 date_format = "%d/%b/%Y:%H:%M:%S %z" 
 
 
-#raw_date = "01/Apr/2021:04:17:59 +0000"#this can be copied from here into progress.txt for testing
+#01/Apr/2021:04:17:59 +0000 #string following this format can be copied from here into 'progress.txt' for the log manager to persist data from this date onwards.
 
-#initialise global variable date
-#date = datetime.now()
 
 def parse(line):
     data = re.search(lineformat, line)
@@ -36,7 +34,7 @@ def persist(ip, useragent, time, website, response):
     return response
 
 
-def saveProgress(datestr):#feel like it could be easier to pass in the date obj but then again the raw str version is available at all times
+def saveProgress(datestr):
     with open("progress.txt","w") as f:
         f.write(datestr)
 
@@ -49,8 +47,9 @@ def watch(fn):
     global date
     fp = open(fn, 'r')
     while True:
+        #LogFile data is read in line by line
         new = fp.readline()
-        # Once all lines are read this just returns (empty - none - false) - how if new is able to work
+        # Once all lines are read this just returns (empty - none - false) - how 'if new:' is able to work
         # until the file changes and a new line appears
 
         if new:
@@ -64,7 +63,7 @@ def watch(fn):
                     response = persist(datadict["ipaddress"], datadict["useragent"], datadict["dateandtime"], datadict["refferer"], datadict["statuscode"])
                     print(response)
                     if response=="<Response [200]>":
-                        date = tempDate#this is done after we verify that the data actually was received by server otherwise why bother log it as complete
+                        date = tempDate#after we verify that the data actually was received by server otherwise why bother log it as complete
                         saveProgress(datadict["dateandtime"])
         else:
             print("SLEEP")
@@ -72,20 +71,13 @@ def watch(fn):
 
 
 def loadProgress():
-    #global date
     with open("progress.txt","r") as f:
              date = datetime.strptime(f.readline(), date_format)
              print(type(date))
              return date
-    #take in value from log file and assign to global var date
-    
 
 fn = 'accesslog.txt'
 
-
-#hardcoded datetime to start the persisting from
-#this raw data could be recovered from a textfile or passed in as param
-# - now at the top 
 
 
 #command line args
@@ -95,6 +87,3 @@ fn = 'accesslog.txt'
 date = loadProgress()
 print(datetime.strftime(date,date_format))
 watch(fn)
-#for hit_word, hit_sentence in watch(fn, words):
-    #print ("Found %r in line: %r" % (hit_word, hit_sentence))
-
