@@ -2,7 +2,7 @@ import time
 import re
 from datetime import datetime
 import requests
-
+import sys
 
 
 lineformat = re.compile(r"""(?P<ipaddress>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}) - - \[(?P<dateandtime>\d{2}\/[a-z]{3}\/\d{4}:\d{2}:\d{2}:\d{2} (\+|\-)\d{4})\] ((\"(GET|POST) )(?P<url>.+)(http\/1\.1")) (?P<statuscode>\d{3}) (?P<bytessent>\d+) (?P<refferer>-|"([^"]+)") (["](?P<useragent>[^"]+)["])""", re.IGNORECASE)
@@ -10,8 +10,10 @@ lineformat = re.compile(r"""(?P<ipaddress>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}) - 
 date_format = "%d/%b/%Y:%H:%M:%S %z" 
 
 
-raw_date = "01/Apr/2021:04:17:59 +0000"
-date = datetime.strptime(raw_date, date_format)
+#raw_date = "01/Apr/2021:04:17:59 +0000"#this can be copied from here into progress.txt for testing
+
+#initialise global variable date
+#date = datetime.now()
 
 def parse(line):
     data = re.search(lineformat, line)
@@ -22,18 +24,28 @@ def parse(line):
         return None
 
 
-def persist():
-    print("persist")
-    
-    """data = {
+def persist(ip, useragent, time, website, response):
+    data = {
         'ipaddress': ip,
         'useragent': useragent,
         'time': time,
         'website':website,
-    }"""
-    #response = requests.post('fyp-backend aws /connections/add',data=data)
+        'response': response
+    }
+    response = requests.post('http://fypbackend-env.eba-srywycaj.eu-west-1.elasticbeanstalk.com/connections/add',data=data)
+    return response
 
-def watch(fn, words):
+
+def saveProgress(datestr):#feel like it could be easier to pass in the date obj but then again the raw str version is available at all times
+    with open("progress.txt","w") as f:
+        f.write(datestr)
+
+def printDates(date1, date2):
+    print(date1.strftime(date_format) + " 2 " + date2.strftime(date_format) )
+    print(date1>date2)
+
+
+def watch(fn):
     global date
     fp = open(fn, 'r')
     while True:
@@ -44,40 +56,31 @@ def watch(fn, words):
         if new:
             print(new)
             datadict = parse(new)
+            print(type(datadict))
             if datadict is not None:
                 tempDate = datetime.strptime(datadict["dateandtime"], date_format)
+                printDates(tempDate, date)
                 if tempDate > date:
-                    print("In d hoi")
-                    date = tempDate#this should probably be done later like after the request has sent so we know that we can actually mark this off as being complete
-
-                #convert datestring to datetime obj 
-            for word in words:###this can be the check here to see if the line is new
-                if word in new:
-                    yield (word, new)
+                    response = persist(datadict["ipaddress"], datadict["useragent"], datadict["dateandtime"], datadict["refferer"], datadict["statuscode"])
+                    print(response)
+                    if response=="<Response [200]>":
+                        date = tempDate#this is done after we verify that the data actually was received by server otherwise why bother log it as complete
+                        saveProgress(datadict["dateandtime"])
         else:
             print("SLEEP")
             time.sleep(4)
 
 
-log = open("progress.txt","r+")
-def saveProgress(datestr):#feel like it could be easier to pass in the date obj but then again the raw str version is available at all times
-    log.write(datestr)
-    log.flush()
-
-
 def loadProgress():
-    dateLoad = log.readline()
-    print(dateLoad)
-    #convert to the global var date
+    #global date
+    with open("progress.txt","r") as f:
+             date = datetime.strptime(f.readline(), date_format)
+             print(type(date))
+             return date
+    #take in value from log file and assign to global var date
     
 
 fn = 'accesslog.txt'
-words = ['word']
-
-#saveProgress(raw_date)
-loadProgress()
-saveProgress(raw_date)
-saveProgress("shite")
 
 
 #hardcoded datetime to start the persisting from
@@ -85,6 +88,13 @@ saveProgress("shite")
 # - now at the top 
 
 
-for hit_word, hit_sentence in watch(fn, words):
-    print ("Found %r in line: %r" % (hit_word, hit_sentence))
+#command line args
+#sys.argv - index0 = name of program 
+
+
+date = loadProgress()
+print(datetime.strftime(date,date_format))
+watch(fn)
+#for hit_word, hit_sentence in watch(fn, words):
+    #print ("Found %r in line: %r" % (hit_word, hit_sentence))
 
