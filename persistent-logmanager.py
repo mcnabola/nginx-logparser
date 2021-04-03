@@ -27,10 +27,11 @@ def persist(ip, useragent, time, website, response):
         'ipaddress': ip,
         'useragent': useragent,
         'time': time,
-        'website':website,
+        'website':website[1:len(website)-1],
         'response': response
     }
-    response = requests.post('http://fypbackend-env.eba-srywycaj.eu-west-1.elasticbeanstalk.com/connections/add',data=data)
+    response = requests.post('http://localhost:5000/connections/add',data=data)
+    #response = requests.post('http://fypbackend-env.eba-srywycaj.eu-west-1.elasticbeanstalk.com/connections/add',data=data)
     return response
 
 
